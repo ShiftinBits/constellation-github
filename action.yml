@@ -1,0 +1,50 @@
+name: "Constellation Index"
+description: "Index your codebase with Constellation - intelligent, secure codebase exploration for your AI assistants"
+author: "ShiftinBits Inc"
+
+branding:
+  icon: "compass"
+  color: "purple"
+
+inputs:
+  access-key:
+    description: "Constellation access key for authentication"
+    required: true
+
+outputs:
+  indexed:
+    description: "Whether the indexing completed successfully"
+    value: ${{ steps.index.outputs.indexed }}
+  summary:
+    description: "Summary of the indexing operation"
+    value: ${{ steps.index.outputs.summary }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+
+    - name: Install Constellation CLI
+      shell: bash
+      run: npm install -g @constellationdev/cli@latest
+
+    - name: Run Constellation Index
+      id: index
+      shell: bash
+      env:
+        CONSTELLATION_ACCESS_KEY: ${{ inputs.access-key }}
+      run: |
+        echo "::group::Constellation Index"
+        if constellation index; then
+          echo "indexed=true" >> $GITHUB_OUTPUT
+          echo "summary=Indexing completed successfully" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+        else
+          echo "indexed=false" >> $GITHUB_OUTPUT
+          echo "summary=Indexing failed" >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+          exit 1
+        fi
