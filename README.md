@@ -3,8 +3,6 @@
 [![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/ShiftinBits/constellation-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Index your codebase with Constellation - secure AST-based knowledge extraction for AI assistants.
-
 ## Overview
 
 This GitHub Action installs the latest [Constellation CLI](https://github.com/ShiftinBits/constellation-cli) and indexes your repository. Constellation extracts structural intelligence from your codebase using Tree-sitter AST analysis, enabling AI assistants to understand your code without transmitting source code.
@@ -150,7 +148,7 @@ Create `.github/workflows/constellation.yml` with one of the examples above.
 
 ## Requirements
 
-- **Node.js**: 20.x (automatically set up by the action)
+- **Node.js**: 24.x (automatically set up by the action)
 - **Runner**: Ubuntu, macOS, or Windows
 
 ## Troubleshooting
@@ -198,5 +196,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 - **Documentation**: [docs.constellationdev.io](https://docs.constellationdev.io)
-- **Issues**: [GitHub Issues](https://github.com/ShiftinBits/constellation-cli/issues)
+- **Issues**: [GitHub Issues](https://github.com/ShiftinBits/constellation-github/issues)
 - **Website**: [constellationdev.io](https://constellationdev.io)
