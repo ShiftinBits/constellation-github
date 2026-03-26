@@ -33,6 +33,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   index:
     runs-on: ubuntu-latest
@@ -44,7 +47,7 @@ jobs:
           access-key: ${{ secrets.CONSTELLATION_ACCESS_KEY }}
 ```
 
-### Index on Merged Pull Requests
+### Index on changes to main
 
 ```yaml
 name: Constellation Index
@@ -52,12 +55,12 @@ name: Constellation Index
 on:
   push:
     branches: [main]
-  pull_request:
-    types: [closed]
+
+permissions:
+  contents: read
 
 jobs:
   index:
-    if: github.event_name == 'push' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,6 +79,9 @@ on:
   schedule:
     - cron: '0 2 * * *' # Daily at 2 AM UTC
   workflow_dispatch: # Manual trigger
+
+permissions:
+  contents: read
 
 jobs:
   index:
