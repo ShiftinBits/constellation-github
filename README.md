@@ -47,6 +47,8 @@ jobs:
           access-key: ${{ secrets.CONSTELLATION_ACCESS_KEY }}
 ```
 
+See a [live implementation example](https://github.com/ShiftinBits/constellation-cli/actions/workflows/constellation.yml) in the Constellation CLI repository.
+
 ### Index on changes to main
 
 ```yaml
