@@ -3,8 +3,8 @@ description: "Index your codebase with Constellation - intelligent, secure codeb
 author: "ShiftinBits Inc"
 
 branding:
-  icon: "compass"
-  color: "purple"
+  icon: "share-2"
+  color: "gray-dark"
 
 inputs:
   access-key:
