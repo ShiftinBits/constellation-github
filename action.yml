@@ -10,6 +10,10 @@ inputs:
   access-key:
     description: "Constellation access key for authentication"
     required: true
+  error-reporting:
+    description: "Enable error reporting to Constellation in the event of indexing failures."
+    required: false
+    default: "true"
 
 outputs:
   indexed:
@@ -29,13 +33,14 @@ runs:
 
     - name: Install Constellation CLI
       shell: bash
-      run: npm install -g @constellationdev/cli@latest
+      run: npm install -g @constellationdev/cli@latest --silent --no-fund --no-audit 2>/dev/null
 
     - name: Run Constellation Index
       id: index
       shell: bash
       env:
         CONSTELLATION_ACCESS_KEY: ${{ inputs.access-key }}
+        CONSTELLATION_ERROR_REPORTING: ${{ inputs.error-reporting }}
       run: |
         echo "::group::Constellation Index"
         if constellation index; then
