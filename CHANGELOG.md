@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release of Constellation Index GitHub Action
 - Composite action that installs latest `@constellationdev/cli`
 - Runs `constellation index` to extract metadata intelligence
-- Single required input: `constellation-access-key`
+- Single required input: `access-key`
 - Outputs: `indexed` (boolean) and `summary` (string)
 - Support for Ubuntu, macOS, and Windows runners
 - Professional documentation with usage examples
