@@ -13,6 +13,7 @@ This GitHub Action installs the latest [Constellation CLI](https://github.com/Sh
 - **Automatic Updates**: Always uses the latest CLI version
 - **Simple Integration**: Single input required - just your access key
 - **Cross-Platform**: Runs on Ubuntu, macOS, and Windows runners
+- **Smart Diff Detection**: Automatically skips indexing when no files matching your `constellation.json` configuration have changed
 
 ## Quick Start
 
@@ -94,7 +95,10 @@ jobs:
       - uses: ShiftinBits/constellation-github@v1
         with:
           access-key: ${{ secrets.CONSTELLATION_ACCESS_KEY }}
+          skip-diff-check: "true" # Always index on schedule
 ```
+
+> **Note:** For `schedule` and `workflow_dispatch` triggers, the diff check automatically detects there is no push context and always indexes, so `skip-diff-check` is optional here but makes the intent explicit.
 
 ### Using Outputs
 
@@ -112,9 +116,11 @@ jobs:
 
 ## Inputs
 
-| Input        | Required | Description                                                                         |
-| ------------ | -------- | ----------------------------------------------------------------------------------- |
-| `access-key` | Yes      | Constellation API access key for authentication. Store this as a repository secret. |
+| Input              | Required | Default   | Description                                                                                          |
+| ------------------ | -------- | --------- | ---------------------------------------------------------------------------------------------------- |
+| `access-key`       | Yes      | —         | Constellation API access key for authentication. Store this as a repository secret.                  |
+| `error-reporting`  | No       | `"true"`  | Enable error reporting to Constellation in the event of indexing failures.                            |
+| `skip-diff-check`  | No       | `"false"` | Skip the diff check and always run indexing. Useful for scheduled runs or when you want a full index. |
 
 ## Outputs
 
@@ -122,6 +128,19 @@ jobs:
 | --------- | ------------------------------------------------------------ |
 | `indexed` | `true` if indexing completed successfully, `false` otherwise |
 | `summary` | Human-readable summary of the indexing operation             |
+
+## How It Works
+
+By default, the action checks which files changed in the push and compares them against the `languages` and `exclude` configuration in your `constellation.json`. If none of the changed files match a configured file extension (or all matching files are excluded), indexing is skipped entirely.
+
+This optimization reduces CI minutes on commits that only change non-code files (documentation, images, config files not tracked by Constellation).
+
+**Indexing always runs when:**
+- This is the first push to a branch (no baseline to diff against)
+- The trigger is `schedule` or `workflow_dispatch` (no push event context)
+- `skip-diff-check` is set to `"true"`
+
+**A `constellation.json` file is required** in the repository root. The action will fail if it is missing.
 
 ## Permissions
 
