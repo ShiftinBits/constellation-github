@@ -44,12 +44,12 @@ runs:
       run: |
         echo "::group::Constellation Index"
         if constellation index; then
-          echo "indexed=true" >> $GITHUB_OUTPUT
-          echo "summary=Indexing completed successfully" >> $GITHUB_OUTPUT
+          echo "indexed=true" >> "$GITHUB_OUTPUT"
+          echo "summary=Indexing completed successfully" >> "$GITHUB_OUTPUT"
           echo "::endgroup::"
         else
-          echo "indexed=false" >> $GITHUB_OUTPUT
-          echo "summary=Indexing failed" >> $GITHUB_OUTPUT
+          echo "indexed=false" >> "$GITHUB_OUTPUT"
+          echo "summary=Indexing failed" >> "$GITHUB_OUTPUT"
           echo "::endgroup::"
           exit 1
         fi

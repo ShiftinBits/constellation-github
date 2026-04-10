@@ -26,7 +26,7 @@ runs:
         # If skip-diff-check is enabled, always index
         if [[ "$SKIP_DIFF_CHECK" == "true" ]]; then
           echo "Diff check skipped — skip-diff-check is enabled"
-          echo "should_index=true" >> $GITHUB_OUTPUT
+          echo "should_index=true" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
@@ -40,7 +40,7 @@ runs:
         EXTENSIONS=$(jq -r '.languages | to_entries[].value.fileExtensions[]' constellation.json 2>/dev/null)
         if [[ -z "$EXTENSIONS" ]]; then
           echo "::warning::No file extensions configured in constellation.json — skipping indexing"
-          echo "should_index=false" >> $GITHUB_OUTPUT
+          echo "should_index=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
@@ -50,19 +50,19 @@ runs:
         # Handle zero-SHA (first push) or empty SHA (schedule/workflow_dispatch)
         if [[ -z "$BEFORE_SHA" || "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
           echo "No baseline commit available — always indexing"
-          echo "should_index=true" >> $GITHUB_OUTPUT
+          echo "should_index=true" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
         # Get changed files
         if ! CHANGED_FILES=$(git diff --name-only "$BEFORE_SHA" HEAD 2>&1); then
           echo "::warning::git diff failed (shallow clone or force-push) — falling back to full index"
-          echo "should_index=true" >> $GITHUB_OUTPUT
+          echo "should_index=true" >> "$GITHUB_OUTPUT"
           exit 0
         fi
         if [[ -z "$CHANGED_FILES" ]]; then
           echo "No files changed — skipping indexing"
-          echo "should_index=false" >> $GITHUB_OUTPUT
+          echo "should_index=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
@@ -96,9 +96,10 @@ runs:
         while IFS= read -r file; do
           [[ -z "$file" ]] && continue
           # Check if file extension matches any configured extension
+          file_ext=".${file##*.}"
           while IFS= read -r ext; do
             [[ -z "$ext" ]] && continue
-            if [[ "$file" == *"$ext" ]]; then
+            if [[ "$file_ext" == "$ext" ]]; then
               # Extension matches — check if excluded
               if ! is_excluded "$file"; then
                 echo "Relevant change detected: $file"
@@ -114,4 +115,4 @@ runs:
         else
           echo "No relevant files changed — indexing can be skipped"
         fi
-        echo "should_index=$SHOULD_INDEX" >> $GITHUB_OUTPUT
+        echo "should_index=$SHOULD_INDEX" >> "$GITHUB_OUTPUT"
