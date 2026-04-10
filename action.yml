@@ -78,7 +78,11 @@ runs:
         fi
 
         # Get changed files
-        CHANGED_FILES=$(git diff --name-only "$BEFORE_SHA" HEAD 2>/dev/null)
+        if ! CHANGED_FILES=$(git diff --name-only "$BEFORE_SHA" HEAD 2>&1); then
+          echo "::warning::git diff failed (shallow clone or force-push) — falling back to full index"
+          echo "should_index=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
         if [[ -z "$CHANGED_FILES" ]]; then
           echo "No files changed — skipping indexing"
           echo "should_index=false" >> $GITHUB_OUTPUT
@@ -157,7 +161,7 @@ runs:
 
     - name: Set skip output
       id: skip
-      if: steps.diff_check.outputs.should_index != 'true'
+      if: success() && steps.diff_check.outputs.should_index != 'true'
       shell: bash
       run: |
         echo "indexed=false" >> $GITHUB_OUTPUT
