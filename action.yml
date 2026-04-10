@@ -22,10 +22,10 @@ inputs:
 outputs:
   indexed:
     description: "Whether the indexing completed successfully"
-    value: ${{ steps.index.outputs.indexed }}
+    value: ${{ steps.index.outputs.indexed || steps.skip.outputs.indexed }}
   summary:
     description: "Summary of the indexing operation"
-    value: ${{ steps.index.outputs.summary }}
+    value: ${{ steps.index.outputs.summary || steps.skip.outputs.summary }}
 
 runs:
   using: "composite"
@@ -137,6 +137,7 @@ runs:
 
     - name: Run Constellation Index
       id: index
+      if: steps.diff_check.outputs.should_index == 'true'
       shell: bash
       env:
         CONSTELLATION_ACCESS_KEY: ${{ inputs.access-key }}
@@ -153,3 +154,11 @@ runs:
           echo "::endgroup::"
           exit 1
         fi
+
+    - name: Set skip output
+      id: skip
+      if: steps.diff_check.outputs.should_index != 'true'
+      shell: bash
+      run: |
+        echo "indexed=false" >> $GITHUB_OUTPUT
+        echo "summary=No relevant files changed — indexing skipped" >> $GITHUB_OUTPUT
