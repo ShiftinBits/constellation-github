@@ -5,6 +5,15 @@ All notable changes to the Constellation Index GitHub Action will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Smart diff detection: automatically skips indexing when no files matching `constellation.json` configuration have changed
+- New `skip-diff-check` input to bypass diff detection and always run indexing
+- Skip output: `indexed=false` with descriptive summary when indexing is skipped
+- Fail-fast when `constellation.json` is missing from repository root
+
 ## [1.0.0] - 2026-04-06
 
 ### Added
