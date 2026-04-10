@@ -9,10 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- New companion `check` action (`ShiftinBits/constellation-github/check`) for smart diff detection
-- Compares git diff against `constellation.json` language extensions and exclude patterns
-- Outputs `should_index` to conditionally skip the index step with a native **Skipped** status in the GitHub Actions UI
-- `skip-diff-check` input on the check action to bypass diff detection
+- Smart diff detection: automatically skips indexing when no files matching `constellation.json` configuration have changed
+- New `skip-diff-check` input to bypass diff detection and always run indexing
 - Handles edge cases: first push, scheduled/manual triggers, shallow clones, missing config
 
 ## [1.0.0] - 2026-04-06
