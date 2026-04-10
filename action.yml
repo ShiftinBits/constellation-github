@@ -39,6 +39,102 @@ runs:
       shell: bash
       run: npm install -g @constellationdev/cli@latest --silent --no-fund --no-audit 2>/dev/null
 
+    - name: Check for relevant changes
+      id: diff_check
+      shell: bash
+      env:
+        SKIP_DIFF_CHECK: ${{ inputs.skip-diff-check }}
+        BEFORE_SHA: ${{ github.event.before }}
+      run: |
+        # If skip-diff-check is enabled, always index
+        if [[ "$SKIP_DIFF_CHECK" == "true" ]]; then
+          echo "Diff check skipped — skip-diff-check is enabled"
+          echo "should_index=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Verify constellation.json exists
+        if [[ ! -f "constellation.json" ]]; then
+          echo "::error::constellation.json not found in repository root. This file is required for Constellation indexing."
+          exit 1
+        fi
+
+        # Extract file extensions from constellation.json
+        EXTENSIONS=$(jq -r '.languages | to_entries[].value.fileExtensions[]' constellation.json 2>/dev/null)
+        if [[ -z "$EXTENSIONS" ]]; then
+          echo "::warning::No file extensions configured in constellation.json — skipping indexing"
+          echo "should_index=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Extract exclude patterns (may be empty)
+        EXCLUDES=$(jq -r '.exclude[]? // empty' constellation.json 2>/dev/null)
+
+        # Handle zero-SHA (first push) or empty SHA (schedule/workflow_dispatch)
+        if [[ -z "$BEFORE_SHA" || "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+          echo "No baseline commit available — always indexing"
+          echo "should_index=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Get changed files
+        CHANGED_FILES=$(git diff --name-only "$BEFORE_SHA" HEAD 2>/dev/null)
+        if [[ -z "$CHANGED_FILES" ]]; then
+          echo "No files changed — skipping indexing"
+          echo "should_index=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Check if any changed file matches a configured extension and is not excluded
+        is_excluded() {
+          local file="$1"
+          if [[ -z "$EXCLUDES" ]]; then
+            return 1
+          fi
+          while IFS= read -r pattern; do
+            [[ -z "$pattern" ]] && continue
+            # Handle dir/** patterns as prefix match
+            local prefix="${pattern%%/\*\*}"
+            if [[ "$prefix" != "$pattern" && "$file" == "$prefix"/* ]]; then
+              return 0
+            fi
+            # Handle **/ prefix patterns
+            local suffix="${pattern##\*\*/}"
+            if [[ "$suffix" != "$pattern" && ( "$file" == */"$suffix" || "$file" == "$suffix" ) ]]; then
+              return 0
+            fi
+            # Direct glob match
+            if [[ "$file" == $pattern ]]; then
+              return 0
+            fi
+          done <<< "$EXCLUDES"
+          return 1
+        }
+
+        SHOULD_INDEX="false"
+        while IFS= read -r file; do
+          [[ -z "$file" ]] && continue
+          # Check if file extension matches any configured extension
+          while IFS= read -r ext; do
+            [[ -z "$ext" ]] && continue
+            if [[ "$file" == *"$ext" ]]; then
+              # Extension matches — check if excluded
+              if ! is_excluded "$file"; then
+                echo "Relevant change detected: $file"
+                SHOULD_INDEX="true"
+                break 2
+              fi
+            fi
+          done <<< "$EXTENSIONS"
+        done <<< "$CHANGED_FILES"
+
+        if [[ "$SHOULD_INDEX" == "true" ]]; then
+          echo "Relevant files changed — indexing will proceed"
+        else
+          echo "No relevant files changed — skipping indexing"
+        fi
+        echo "should_index=$SHOULD_INDEX" >> $GITHUB_OUTPUT
+
     - name: Run Constellation Index
       id: index
       shell: bash
