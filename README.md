@@ -1,11 +1,11 @@
 # Constellation Index Action
 
-[![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/ShiftinBits/constellation-cli)
+[![GitHub Action](https://img.shields.io/badge/GitHub-Action-blue?logo=github)](https://github.com/ShiftinBits/constellation-github)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Overview
 
-This GitHub Action installs the latest [Constellation CLI](https://github.com/ShiftinBits/constellation-cli) and indexes your repository. Constellation extracts structural intelligence from your codebase using Tree-sitter AST analysis, enabling AI assistants to understand your code without transmitting source code.
+This GitHub Action installs the latest [Constellation CLI](https://docs.constellationdev.io/cli/) and indexes your repository. Constellation extracts structural intelligence from your codebase using Tree-sitter AST analysis, enabling AI assistants to understand your code without transmitting source code.
 
 ### Key Features
 
@@ -48,7 +48,7 @@ jobs:
           access-key: ${{ secrets.CONSTELLATION_ACCESS_KEY }}
 ```
 
-See a [live implementation example](https://github.com/ShiftinBits/constellation-cli/actions/workflows/constellation.yml) in the Constellation CLI repository.
+See a [live implementation example](https://github.com/ShiftinBits/constellation-mcp/actions/workflows/constellation.yml) in the Constellation MCP repository.
 
 ### Scheduled Indexing
 
@@ -193,7 +193,7 @@ See [SECURITY.md](SECURITY.md) for our security policy and vulnerability reporti
 
 ## Contributing
 
-Contributions are welcome! Please see the [Constellation CLI repository](https://github.com/ShiftinBits/constellation-cli) for contribution guidelines.
+Contributions are welcome! Please see the [Constellation MCP repository](https://github.com/ShiftinBits/constellation-mcp) for contribution guidelines.
 
 ## License
 
