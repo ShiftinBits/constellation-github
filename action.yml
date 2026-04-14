@@ -30,19 +30,6 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: "24"
-
-    - name: Install Constellation CLI
-      shell: bash
-      run: npm install -g @constellationdev/cli@latest --silent --no-fund --no-audit 2>/dev/null
-
-    - name: Install LSP servers for enrichment
-      shell: bash
-      run: npm install --prefix ~/.constellation/lsp-servers typescript-language-server typescript pyright --silent --no-fund --no-audit 2>/dev/null
-
     - name: Check for relevant changes
       id: diff_check
       shell: bash
@@ -143,6 +130,22 @@ runs:
           echo "No relevant files changed — skipping indexing"
         fi
         echo "should_index=$SHOULD_INDEX" >> "$GITHUB_OUTPUT"
+
+    - name: Setup Node.js
+      if: steps.diff_check.outputs.should_index == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: "24"
+
+    - name: Install Constellation CLI
+      if: steps.diff_check.outputs.should_index == 'true'
+      shell: bash
+      run: npm install -g @constellationdev/cli@latest --silent --no-fund --no-audit 2>/dev/null
+
+    - name: Install LSP servers for enrichment
+      if: steps.diff_check.outputs.should_index == 'true'
+      shell: bash
+      run: npm install --prefix ~/.constellation/lsp-servers typescript-language-server typescript pyright --silent --no-fund --no-audit 2>/dev/null
 
     - name: Run Constellation Index
       id: index
