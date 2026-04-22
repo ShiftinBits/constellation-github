@@ -145,7 +145,7 @@ runs:
     - name: Install LSP servers for enrichment
       if: steps.diff_check.outputs.should_index == 'true'
       shell: bash
-      run: npm install --prefix ~/.constellation/lsp-servers typescript-language-server typescript pyright --silent --no-fund --no-audit 2>/dev/null
+      run: npm install -g typescript-language-server typescript pyright --silent --no-fund --no-audit 2>/dev/null
 
     - name: Run Constellation Index
       id: index
