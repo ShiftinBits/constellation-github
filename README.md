@@ -72,10 +72,10 @@ jobs:
       - uses: ShiftinBits/constellation-github@v1
         with:
           access-key: ${{ secrets.CONSTELLATION_ACCESS_KEY }}
-          skip-diff-check: "true" # Always index on schedule
+          skip-diff-check: "true" # Optional: always index on schedule
 ```
 
-> **Note:** For `schedule` and `workflow_dispatch` triggers, the diff check automatically detects there is no push context and always indexes, so `skip-diff-check` is optional here but makes the intent explicit.
+> **Note:** For `workflow_dispatch` triggers, the action bypasses the `diff_check` step and forces a full re-index. For `schedule` triggers, indexing still runs automatically due missing push baseline context, so `skip-diff-check` remains optional.
 
 ### Using Outputs
 
@@ -114,7 +114,8 @@ This optimization reduces CI minutes on commits that only change non-code files 
 
 **Indexing always runs when:**
 - This is the first push to a branch (no baseline to diff against)
-- The trigger is `schedule` or `workflow_dispatch` (no push event context)
+- The trigger is `workflow_dispatch` (manual runs bypass `diff_check` and force full re-index)
+- The trigger is `schedule` (no push event baseline for diff detection)
 - The git diff fails (e.g., shallow clone) — falls back to indexing with a warning
 - `skip-diff-check` is set to `"true"`
 

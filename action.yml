@@ -30,8 +30,17 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Handle manual trigger
+      id: manual_trigger
+      if: github.event_name == 'workflow_dispatch'
+      shell: bash
+      run: |
+        echo "Manual workflow_dispatch trigger detected — forcing full re-index"
+        echo "should_index=true" >> "$GITHUB_OUTPUT"
+
     - name: Check for relevant changes
       id: diff_check
+      if: github.event_name != 'workflow_dispatch'
       shell: bash
       env:
         SKIP_DIFF_CHECK: ${{ inputs.skip-diff-check }}
@@ -132,24 +141,24 @@ runs:
         echo "should_index=$SHOULD_INDEX" >> "$GITHUB_OUTPUT"
 
     - name: Setup Node.js
-      if: steps.diff_check.outputs.should_index == 'true'
+      if: steps.manual_trigger.outputs.should_index == 'true' || steps.diff_check.outputs.should_index == 'true'
       uses: actions/setup-node@v4
       with:
         node-version: "24"
 
     - name: Install Constellation CLI
-      if: steps.diff_check.outputs.should_index == 'true'
+      if: steps.manual_trigger.outputs.should_index == 'true' || steps.diff_check.outputs.should_index == 'true'
       shell: bash
       run: npm install -g @constellationdev/cli@latest --silent --no-fund --no-audit 2>/dev/null
 
     - name: Install LSP servers for enrichment
-      if: steps.diff_check.outputs.should_index == 'true'
+      if: steps.manual_trigger.outputs.should_index == 'true' || steps.diff_check.outputs.should_index == 'true'
       shell: bash
       run: npm install -g typescript-language-server typescript pyright --silent --no-fund --no-audit 2>/dev/null
 
     - name: Run Constellation Index
       id: index
-      if: steps.diff_check.outputs.should_index == 'true'
+      if: steps.manual_trigger.outputs.should_index == 'true' || steps.diff_check.outputs.should_index == 'true'
       shell: bash
       env:
         CONSTELLATION_ACCESS_KEY: ${{ inputs.access-key }}
@@ -169,7 +178,7 @@ runs:
 
     - name: Set skip output
       id: skip
-      if: success() && steps.diff_check.outputs.should_index != 'true'
+      if: success() && steps.manual_trigger.outputs.should_index != 'true' && steps.diff_check.outputs.should_index != 'true'
       shell: bash
       run: |
         echo "indexed=false" >> "$GITHUB_OUTPUT"
