@@ -5,6 +5,16 @@ All notable changes to the Constellation Index GitHub Action will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-05-28
+
+### Added
+
+- Self-healing git history: on `push`, the action detects a shallow clone and runs `git fetch --unshallow` so the diff check can resolve the push baseline and skip indexing when no tracked files changed. Best-effort and non-fatal — falls back to a full index if history cannot be fetched.
+
+### Changed
+
+- README now recommends `fetch-depth: 0` on `actions/checkout` and documents the `persist-credentials` interaction.
+
 ## [1.2.2] - 2026-04-22
 
 ### Changed
