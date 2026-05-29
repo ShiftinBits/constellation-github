@@ -38,6 +38,24 @@ runs:
         echo "Manual workflow_dispatch trigger detected — forcing full re-index"
         echo "should_index=true" >> "$GITHUB_OUTPUT"
 
+    - name: Ensure full git history
+      if: github.event_name == 'push' && inputs.skip-diff-check != 'true'
+      shell: bash
+      run: |
+        # diff_check below compares github.event.before..HEAD. A shallow clone
+        # (actions/checkout default fetch-depth: 1) lacks the base commit, forcing
+        # a full index. Unshallow so the diff can resolve. Best-effort: never fail.
+        if [[ "$(git rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]]; then
+          echo "Shallow clone detected — fetching full history for diff detection"
+          if git fetch --unshallow --quiet 2>/dev/null; then
+            echo "Full history fetched"
+          else
+            echo "::warning::Could not unshallow repository (credentials disabled or network issue). Diff-check will fall back to a full index. For best results, set 'fetch-depth: 0' on actions/checkout."
+          fi
+        else
+          echo "Full history already present — skipping unshallow"
+        fi
+
     - name: Check for relevant changes
       id: diff_check
       if: github.event_name != 'workflow_dispatch'

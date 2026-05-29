@@ -42,6 +42,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history lets the action skip indexing on no-op pushes
 
       - uses: ShiftinBits/constellation-github@v1
         with:
@@ -49,6 +51,13 @@ jobs:
 ```
 
 See a [live implementation example](https://github.com/ShiftinBits/constellation-mcp/actions/workflows/constellation.yml) in the Constellation MCP repository.
+
+> **Full history (`fetch-depth: 0`) is recommended.** The action compares the pushed commit
+> against its baseline (`github.event.before`) to skip indexing when no tracked files changed.
+> `actions/checkout` defaults to a shallow clone (depth 1), which omits that baseline. On `push`
+> the action self-heals by running `git fetch --unshallow`, but this needs the credentials
+> `actions/checkout` persists by default. **If you set `persist-credentials: false`, set
+> `fetch-depth: 0` instead** to guarantee full history.
 
 ### Scheduled Indexing
 
@@ -68,6 +77,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: ShiftinBits/constellation-github@v1
         with:
@@ -116,7 +127,7 @@ This optimization reduces CI minutes on commits that only change non-code files 
 - This is the first push to a branch (no baseline to diff against)
 - The trigger is `workflow_dispatch` (manual runs bypass `diff_check` and force full re-index)
 - The trigger is `schedule` (no push event baseline for diff detection)
-- The git diff fails (e.g., shallow clone) — falls back to indexing with a warning
+- The git diff fails (e.g., a force-push orphaned the baseline commit, or the action could not fetch full history) — falls back to indexing with a warning
 - `skip-diff-check` is set to `"true"`
 
 **A `constellation.json` file is required** in the repository root. The action will fail if it is missing.
