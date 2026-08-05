@@ -185,9 +185,20 @@ runs:
       env:
         CONSTELLATION_ACCESS_KEY: ${{ inputs.access-key }}
         CONSTELLATION_ERROR_REPORTING: ${{ inputs.error-reporting }}
+        MANUAL_TRIGGER: ${{ steps.manual_trigger.outputs.should_index }}
       run: |
         echo "::group::Constellation Index"
-        if constellation index; then
+        # workflow_dispatch is the operator's escape hatch for forcing a clean
+        # rebuild, so it must pass --full explicitly. It used to get one only as
+        # a side effect of the CLI defaulting every CI run to a full index; now
+        # that CI indexes incrementally, an unflagged run here would quietly do
+        # the opposite of what the manual-trigger step announces.
+        INDEX_ARGS=()
+        if [[ "$MANUAL_TRIGGER" == "true" ]]; then
+          echo "Manual trigger — forcing a full re-index"
+          INDEX_ARGS+=(--full)
+        fi
+        if constellation index "${INDEX_ARGS[@]}"; then
           echo "indexed=true" >> "$GITHUB_OUTPUT"
           echo "summary=Indexing completed successfully" >> "$GITHUB_OUTPUT"
           echo "::endgroup::"
