@@ -39,18 +39,22 @@ runs:
         echo "should_index=true" >> "$GITHUB_OUTPUT"
 
     - name: Ensure full git history
-      if: github.event_name == 'push' && inputs.skip-diff-check != 'true'
       shell: bash
       run: |
-        # diff_check below compares github.event.before..HEAD. A shallow clone
-        # (actions/checkout default fetch-depth: 1) lacks the base commit, forcing
-        # a full index. Unshallow so the diff can resolve. Best-effort: never fail.
+        # Two consumers need history, so this runs for every trigger:
+        #   1. diff_check below compares github.event.before..HEAD.
+        #   2. the CLI diffs against the last *indexed* commit to decide whether
+        #      it can send an incremental index. Without that commit it falls
+        #      back to a full index, which rewrites the whole project generation
+        #      and leaves the reaper to reclaim it.
+        # A shallow clone (actions/checkout default fetch-depth: 1) lacks both
+        # bases. Unshallow so they resolve. Best-effort: never fail.
         if [[ "$(git rev-parse --is-shallow-repository 2>/dev/null)" == "true" ]]; then
           echo "Shallow clone detected — fetching full history for diff detection"
           if git fetch --unshallow --quiet 2>/dev/null; then
             echo "Full history fetched"
           else
-            echo "::warning::Could not unshallow repository (credentials disabled or network issue). Diff-check will fall back to a full index. For best results, set 'fetch-depth: 0' on actions/checkout."
+            echo "::warning::Could not unshallow repository (credentials disabled or network issue). Diff-check and incremental indexing will fall back to a full index. For best results, set 'fetch-depth: 0' on actions/checkout."
           fi
         else
           echo "Full history already present — skipping unshallow"
@@ -181,9 +185,20 @@ runs:
       env:
         CONSTELLATION_ACCESS_KEY: ${{ inputs.access-key }}
         CONSTELLATION_ERROR_REPORTING: ${{ inputs.error-reporting }}
+        MANUAL_TRIGGER: ${{ steps.manual_trigger.outputs.should_index }}
       run: |
         echo "::group::Constellation Index"
-        if constellation index; then
+        # workflow_dispatch is the operator's escape hatch for forcing a clean
+        # rebuild, so it must pass --full explicitly. It used to get one only as
+        # a side effect of the CLI defaulting every CI run to a full index; now
+        # that CI indexes incrementally, an unflagged run here would quietly do
+        # the opposite of what the manual-trigger step announces.
+        INDEX_ARGS=()
+        if [[ "$MANUAL_TRIGGER" == "true" ]]; then
+          echo "Manual trigger — forcing a full re-index"
+          INDEX_ARGS+=(--full)
+        fi
+        if constellation index "${INDEX_ARGS[@]}"; then
           echo "indexed=true" >> "$GITHUB_OUTPUT"
           echo "summary=Indexing completed successfully" >> "$GITHUB_OUTPUT"
           echo "::endgroup::"
