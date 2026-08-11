@@ -109,6 +109,7 @@ jobs:
 | `access-key`       | Yes      | —         | Constellation API access key for authentication. Store this as a repository secret.                  |
 | `error-reporting`  | No       | `"true"`  | Enable error reporting to Constellation in the event of indexing failures.                            |
 | `skip-diff-check`  | No       | `"false"` | Skip the diff check and always run indexing. Useful for scheduled runs or when you want a full index. |
+| `wait`             | No       | `"false"` | Wait for server-side indexing to complete before the job finishes. The default ends the job once the upload is accepted; set to `"true"` if a later step needs the completed index. |
 
 ## Outputs
 
