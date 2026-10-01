@@ -143,7 +143,7 @@ runs:
         echo "Last indexed commit: $LATEST_COMMIT"
 
         # Get changed files since the last indexed commit
-        if ! CHANGED_FILES=$(git diff --name-only "$LATEST_COMMIT" HEAD 2>/dev/null); then
+        if ! CHANGED_FILES=$(git diff --name-only --no-renames "$LATEST_COMMIT" HEAD 2>/dev/null); then
           echo "::warning::git diff failed (last indexed commit missing from local history: shallow clone or force-push) — indexing"
           echo "should_index=true" >> "$GITHUB_OUTPUT"
           exit 0
