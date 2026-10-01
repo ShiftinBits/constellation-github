@@ -5,6 +5,16 @@ All notable changes to the Constellation Index GitHub Action will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- The diff check now compares against the last commit Constellation indexed for the branch (read from the project state API) instead of `github.event.before`. A never-indexed project whose setup commit touched no source files is now indexed, and source changes from a run that skipped or failed are picked up by the next run. If the project state cannot be read, the action indexes.
+
+### Changed
+
+- `schedule` runs now go through the same diff check and skip when nothing relevant changed since the last index. Set `skip-diff-check: "true"` to always index on schedule.
+
 ## [1.3.0] - 2026-05-28
 
 ### Added
