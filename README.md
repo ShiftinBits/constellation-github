@@ -53,9 +53,9 @@ jobs:
 See a [live implementation example](https://github.com/ShiftinBits/constellation-mcp/actions/workflows/constellation.yml) in the Constellation MCP repository.
 
 > **Full history (`fetch-depth: 0`) is recommended.** The action compares the pushed commit
-> against its baseline (`github.event.before`) to skip indexing when no tracked files changed.
-> `actions/checkout` defaults to a shallow clone (depth 1), which omits that baseline. On `push`
-> the action self-heals by running `git fetch --unshallow`, but this needs the credentials
+> against the last commit Constellation indexed for the branch to skip indexing when no tracked
+> files changed. `actions/checkout` defaults to a shallow clone (depth 1), which usually omits that
+> commit. The action self-heals by running `git fetch --unshallow`, but this needs the credentials
 > `actions/checkout` persists by default. **If you set `persist-credentials: false`, set
 > `fetch-depth: 0` instead** to guarantee full history.
 
@@ -86,7 +86,7 @@ jobs:
           skip-diff-check: "true" # Optional: always index on schedule
 ```
 
-> **Note:** For `workflow_dispatch` triggers, the action bypasses the `diff_check` step and forces a full re-index. For `schedule` triggers, indexing still runs automatically due missing push baseline context, so `skip-diff-check` remains optional.
+> **Note:** For `workflow_dispatch` triggers, the action bypasses the `diff_check` step and forces a full re-index. For `schedule` triggers, the diff check compares against the last indexed commit like any other run, so set `skip-diff-check: "true"` if you want every scheduled run to index.
 
 ### Using Outputs
 
@@ -120,15 +120,17 @@ jobs:
 
 ## How It Works
 
-By default, the action checks which files changed in the push and compares them against the `languages` and `exclude` configuration in your `constellation.json`. If none of the changed files match a configured file extension (or all matching files are excluded), indexing is skipped entirely.
+By default, the action asks the Constellation API for the last commit it indexed on the branch, lists the files changed between that commit and `HEAD`, and compares them against the `languages` and `exclude` configuration in your `constellation.json`. If none of the changed files match a configured file extension (or all matching files are excluded), indexing is skipped entirely.
+
+Because the baseline is the last *indexed* commit rather than the previous tip of the push, a run that skipped or failed never leaves changes behind: the next run still sees them.
 
 This optimization reduces CI minutes on commits that only change non-code files (documentation, images, config files not tracked by Constellation).
 
 **Indexing always runs when:**
-- This is the first push to a branch (no baseline to diff against)
+- The branch has never been indexed, or the server requires a full index
+- The project state request fails (network error or any non-200 response) — the action fails open toward indexing
 - The trigger is `workflow_dispatch` (manual runs bypass `diff_check` and force full re-index)
-- The trigger is `schedule` (no push event baseline for diff detection)
-- The git diff fails (e.g., a force-push orphaned the baseline commit, or the action could not fetch full history) — falls back to indexing with a warning
+- The git diff fails (e.g., a force-push orphaned the last indexed commit, or the action could not fetch full history) — falls back to indexing with a warning
 - `skip-diff-check` is set to `"true"`
 
 **A `constellation.json` file is required** in the repository root. The action will fail if it is missing.
