@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- The diff check now compares against the last commit Constellation indexed for the branch (read from the project state API) instead of `github.event.before`. A never-indexed project whose setup commit touched no source files is now indexed, and source changes from a run that skipped or failed are picked up by the next run. If the project state cannot be read, the action indexes.
+- The diff check now compares against the last commit Constellation indexed for the branch (read from the project state API) instead of `github.event.before`. A never-indexed project whose setup commit touched no source files is now indexed, and source changes from a run that skipped or failed are picked up by the next run. If the project state cannot be read, the action indexes. ([SB-1247](https://linear.app/shiftinbits/issue/SB-1247/github-action-skips-indexing-for-a-never-indexed-project-when-the-push), [#6](https://github.com/ShiftinBits/constellation-github/pull/6))
 
 ### Changed
 
