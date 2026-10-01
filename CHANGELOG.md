@@ -5,7 +5,7 @@ All notable changes to the Constellation Index GitHub Action will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.2.4] - 2026-10-01
 
 ### Fixed
 
@@ -16,14 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `schedule` runs now go through the same diff check and skip when nothing relevant changed since the last index. Set `skip-diff-check: "true"` to always index on schedule.
 
-## [1.3.0] - 2026-05-28
+## [1.2.3] - 2026-08-11
 
 ### Added
 
 - Self-healing git history: on `push`, the action detects a shallow clone and runs `git fetch --unshallow` so the diff check can resolve the push baseline and skip indexing when no tracked files changed. Best-effort and non-fatal — falls back to a full index if history cannot be fetched.
+- New `wait` input (default `"false"`): the action now finishes as soon as the upload is accepted instead of waiting for server-side indexing to complete. Set `wait: "true"` to restore the old behavior.
 
 ### Changed
 
+- Every trigger now ensures full git history is available, so the CLI can index incrementally against the last indexed commit instead of re-indexing everything.
+- Manual `workflow_dispatch` runs now explicitly request a full re-index.
 - README now recommends `fetch-depth: 0` on `actions/checkout` and documents the `persist-credentials` interaction.
 
 ## [1.2.2] - 2026-04-22
@@ -44,6 +47,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README links that pointed to incorrect repositories.
 
 **Full Changelog**: https://github.com/ShiftinBits/constellation-github/compare/v1.2.0...v1.2.1
+
+## [1.2.0] - 2026-04-13
+
+### Added
+
+- LSP enrichment support: TypeScript and Python language servers are installed during CI when `constellation.json` has LSP config, enabling type info, references, and call hierarchy enrichment. Skipped when no LSP config is present.
 
 ## [1.1.0] - 2026-04-09
 
